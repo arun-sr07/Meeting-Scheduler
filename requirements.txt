@@ -2,10 +2,7 @@
 
 mcp>=1.0.0
 fastmcp>=1.0.0
-# --- Core server ---
-fastapi
-uvicorn
-sse-starlette
+
 
 # --- Google Calendar API ---
 google-api-python-client

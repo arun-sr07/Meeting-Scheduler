@@ -7,7 +7,7 @@ from utils.call_mcp_tool import call_mcp_tool
 import asyncio
 import argparse
 import json
-import dateparser 
+
 from datetime import datetime
 from typing import Dict, List, Any
 from fastmcp import FastMCP
@@ -74,19 +74,34 @@ class GoogleCalendarMCPServer:
             }
 
         if time:
-            check_time = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+            # Expect "HH:MM" only
+            try:
+                check_time = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+            except ValueError:
+                return {
+                    "available": False,
+                    "message": f"Invalid time format '{time}'. Use HH:MM (e.g. 10:00).",
+                    "events": []
+                }
+
             for e in events_on_date:
-                if e["start"] <= check_time < e["end"]:
+                # Normalize all datetimes to naive
+                start = e["start"].astimezone(tz=None).replace(tzinfo=None)
+                end = e["end"].astimezone(tz=None).replace(tzinfo=None)
+                check_time = check_time.replace(tzinfo=None)
+
+                if start <= check_time < end:
                     return {
                         "available": False,
                         "message": f"You are busy at {time} on {date} with {e['summary']}",
                         "events": [
                             {
                                 "summary": e["summary"],
-                                "time": f"{e['start'].strftime('%H:%M')} - {e['end'].strftime('%H:%M')}",
+                                "time": f"{start.strftime('%H:%M')} - {end.strftime('%H:%M')}",
                             }
                         ],
                     }
+
             return {
                 "available": True,
                 "message": f"You are free at {time} on {date}",
@@ -104,7 +119,7 @@ class GoogleCalendarMCPServer:
                 for e in events_on_date
             ],
         }
-
+        
     def get_schedule(self, date: str) -> Dict[str, Any]:
         """Get full schedule for a specific date"""
         events_on_date = [e for e in self.events if e["date"] == date]
@@ -209,5 +224,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--server_type", type=str, default="sse", choices=["sse", "stdio"])
     args = parser.parse_args()
-    server.run(args.server_type,host="127.0.0.1", port=8081)
+    server.run(args.server_type,host="127.0.0.1", port=8080)
 

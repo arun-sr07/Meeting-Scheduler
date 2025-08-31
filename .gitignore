@@ -1,0 +1,7 @@
+.env
+credentials.json
+contacts.txt
+token_calendar.json
+token_gmail.json
+.venv
+

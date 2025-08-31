@@ -40,7 +40,7 @@ def setup_gmail():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=8888)
+            creds = flow.run_local_server(port=8888,access_type='offline',prompt='consent')
         
         # Save the credentials for the next run
         with open('token_gmail.json', 'w') as token:

@@ -14,18 +14,22 @@ from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 from llama_index.core.agent.workflow import FunctionAgent, ToolCall, ToolCallResult
 from llama_index.core.workflow import Context
 
-# Configure Groq
-# Make sure you set: export GROQ_API_KEY="your_api_key"
+
 llm = Groq(model="llama-3.1-8b-instant",api_key=os.getenv("GROQ_API_KEY"), request_timeout=120.0)
 Settings.llm = llm
 
-SYSTEM_PROMPT = """\
-You are a helpful assistant that can check calendar availability
-and send meeting links by email.
-You must use tools (via MCP) when users ask about schedules,
-meetings, availability, or sending invites.
-You may only call these tools: check_availability, get_schedule,
-schedule_meeting, send_email. Do not invent new tools.
+SYSTEM_PROMPT = """\You are a helpful assistant that can check calendar availability,
+schedule meetings, send meeting links by email, and generate/send Minutes of Meeting (MoM).
+You must use tools (via MCP) when users ask about schedules, meetings, availability, invites, or MoM.
+You may only call these tools: check_availability, get_schedule, schedule_meeting, send_email, generate_mom, send_mom.
+Do not invent new tools.
+
+IMPORTANT WORKFLOW RULES:
+- When generating and sending Minutes of Meeting (MoM), use the send_mom tool which handles the complete workflow
+- The send_mom tool will: 1) Generate the MoM, 2) Send it via email
+- This ensures the proper sequence and prevents sending emails before content is generated
+- For other email needs, use send_email directly
+
 """
 
 async def get_agent(mcp_tool: list[McpToolSpec]) -> FunctionAgent:
@@ -65,11 +69,13 @@ async def handle_user_message(
 
 async def main():
     # Connect to MCP server (your calendar_server should expose this SSE endpoint)
-    gmail_client = BasicMCPClient("http://127.0.0.1:8081/sse")
-    calendar_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+    gmail_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+    calendar_client = BasicMCPClient("http://127.0.0.1:8080/sse")
+    mom_client=BasicMCPClient("http://127.0.0.1:8081/sse")
     mcp_tool = [
         McpToolSpec(client=gmail_client),
-        McpToolSpec(client=calendar_client)
+        McpToolSpec(client=calendar_client),
+        McpToolSpec(client=mom_client)
     ]
 
     # Init agent
