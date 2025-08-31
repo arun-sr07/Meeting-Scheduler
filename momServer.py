@@ -19,7 +19,7 @@ class MoMServer:
             # Initialize Groq LLM
             self.llm = Groq(
                 model="llama-3.1-8b-instant",
-                api_key="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",
+                api_key=os.getenv("GROQ_API_KEY"),
                 request_timeout=120.0,
             )
             Settings.llm = self.llm
