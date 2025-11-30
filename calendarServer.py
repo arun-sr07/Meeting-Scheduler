@@ -189,35 +189,63 @@ server = FastMCP("GoogleCalendarMCP")
 
 @server.tool()
 def check_availability(date: str, time: str = None) -> str:
-    """Check if the user is available on a specific date (optionally at a time)."""
+    """Check if the user is available on a specific date (optionally at a time).
+    
+    Args:
+        date: Date in YYYY-MM-DD format (e.g., "2025-01-25")
+        time: Time in HH:MM format (e.g., "10:00"), optional
+    """
     return json.dumps(calendar_server.check_availability(date, time), indent=2)
 
 
 @server.tool()
 def get_schedule(date: str) -> str:
-    """Get the full schedule for a specific date."""
+    """Get the full schedule for a specific date.
+    
+    Args:
+        date: Date in YYYY-MM-DD format (e.g., "2025-01-25")
+    """
     return json.dumps(calendar_server.get_schedule(date), indent=2)
 
 @server.tool()
 def schedule_meeting(date: str, start_time: str, end_time: str, summary: str) -> str:
-    """Book a meeting in the calendar for a given date and time with a title."""
+    """Book a meeting in the calendar for a given date and time with a title.
+    
+    Args:
+        date: Date in YYYY-MM-DD format (e.g., "2025-01-25")
+        start_time: Start time in HH:MM format (e.g., "10:00")
+        end_time: End time in HH:MM format (e.g., "11:00")
+        summary: Meeting title/description
+    """
     return json.dumps(calendar_server.schedule_meeting(date, start_time, end_time, summary), indent=2)
-# ---------------- Email Tool ---------------- #
 
 @server.tool()
-async def send_meeting_email(to: str, subject: str, body: str) -> str:
+def schedule_meeting_today(start_time: str, end_time: str, summary: str) -> str:
+    """Schedule a meeting for today with specified times.
+    
+    Args:
+        start_time: Start time in HH:MM format (e.g., "10:00")
+        end_time: End time in HH:MM format (e.g., "11:00")
+        summary: Meeting title/description
     """
-    Send a meeting invite email via Gmail MCP.
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
+    return json.dumps(calendar_server.schedule_meeting(today, start_time, end_time, summary), indent=2)
+
+@server.tool()
+def schedule_meeting_tomorrow(start_time: str, end_time: str, summary: str) -> str:
+    """Schedule a meeting for tomorrow with specified times.
+    
+    Args:
+        start_time: Start time in HH:MM format (e.g., "10:00")
+        end_time: End time in HH:MM format (e.g., "11:00")
+        summary: Meeting title/description
     """
-    try:
-        result = await call_mcp_tool("gmail_client", "send_email", {
-            "to": to,
-            "subject": subject,
-            "body": body
-        })
-        return json.dumps(result, indent=2)
-    except Exception as e:
-        return json.dumps({"success": False, "message": str(e)}, indent=2)
+    from datetime import datetime, timedelta
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    return json.dumps(calendar_server.schedule_meeting(tomorrow, start_time, end_time, summary), indent=2)
+
+# Note: Email functionality is provided by the Gmail MCP server via send_email tool
 
 if __name__ == "__main__":
     print("🚀 Starting MCP server...")

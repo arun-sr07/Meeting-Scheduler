@@ -4,4 +4,5 @@ contacts.txt
 token_calendar.json
 token_gmail.json
 .venv
+_pycache_/
 

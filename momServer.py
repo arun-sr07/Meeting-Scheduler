@@ -10,7 +10,8 @@ from fastmcp import FastMCP
 from llama_index.llms.groq import Groq
 from llama_index.core import Settings
 from llama_index.tools.mcp import BasicMCPClient
-
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class MoMServer:
@@ -81,7 +82,7 @@ async def send_mom(names: str, transcript: str) -> str:
         from llama_index.tools.mcp import BasicMCPClient
         
         # Create Gmail client
-        gmail_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+        gmail_client = BasicMCPClient("http://127.0.0.1:8051/sse")
         
         # Send email with the generated MoM content
         response = await gmail_client.call_tool("send_email", {

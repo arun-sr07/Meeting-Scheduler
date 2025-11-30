@@ -70,15 +70,42 @@ def send_email(to: list, subject: str, body: str) -> str:
     """Send an email with subject and body to recipient.
     
     Args:
-        to: List of email addresses or names to send to
+        to: List of email addresses or names to send to (names will be looked up in contacts.txt)
         subject: Email subject
         body: Email body content
     """
     return json.dumps(gmail_server.send_email(to, subject, body), indent=2)
 
+@server.tool()
+def send_email_to_person(name: str, subject: str, body: str) -> str:
+    """Send an email to a person by name (looks up email from contacts.txt).
+    
+    Args:
+        name: Person's name to send email to (will be looked up in contacts.txt)
+        subject: Email subject
+        body: Email body content
+    """
+    try:
+        # Look up the person's email from contacts
+        contacts = load_contacts()
+        name_key = name.lower().strip()
+        
+        if name_key in contacts:
+            email = contacts[name_key]
+            result = gmail_server.send_email([email], subject, body)
+            result["looked_up_email"] = email
+            return json.dumps(result, indent=2)
+        else:
+            return json.dumps({
+                "success": False, 
+                "message": f"Person '{name}' not found in contacts.txt. Available contacts: {list(contacts.keys())}"
+            }, indent=2)
+    except Exception as e:
+        return json.dumps({"success": False, "message": f"Error: {str(e)}"}, indent=2)
+
 if __name__ == "__main__":
-    print("🚀 Starting Gmail MCP server...")
+    print("Starting Gmail MCP server...")
     parser = argparse.ArgumentParser()
     parser.add_argument("--server_type", type=str, default="sse", choices=["sse", "stdio"])
     args = parser.parse_args()
-    server.run(args.server_type)
+    server.run(args.server_type, host="127.0.0.1", port=8051)

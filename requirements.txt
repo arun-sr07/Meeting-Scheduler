@@ -12,9 +12,19 @@ google-auth-oauthlib
 # --- Optional: for MCP + Ollama client integration ---
 llama-index-core
 llama-index-llms-ollama
+llama-index-llms-groq
 llama-index-tools-mcp
 nest_asyncio
 python-dotenv
 
 dateparser
 asyncio
+
+# --- Telegram Bot Integration ---
+python-telegram-bot
+
+# --- Flask WhatsApp Integration ---
+flask
+requests
+aiohttp
+nest-asyncio
