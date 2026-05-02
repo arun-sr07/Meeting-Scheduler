@@ -414,5 +414,5 @@ ngrok http 8000
 
 ## 📸 Screenshots
 
-![E-mail](screenshots/emailss.png)
+![E-mail](emailss.png)
 ---
